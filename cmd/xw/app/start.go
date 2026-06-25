@@ -29,7 +29,7 @@ type StartOptions struct {
 	// Device is the device list (e.g., "0", "0,1,2,3")
 	Device string
 	
-	// TensorParallel is the tensor parallelism degree (must be 1/2/4/8)
+	// TensorParallel is the tensor parallelism degree (must be 1/2/4/8; 16 only for Ascend 910C)
 	TensorParallel int
 
 	// MaxConcurrent is the maximum number of concurrent requests (0 for unlimited)
@@ -127,7 +127,7 @@ Examples:
 	cmd.Flags().StringVar(&opts.Device, "device", "", 
 		"device list (e.g., 0 or 0,1,2,3)")
 	cmd.Flags().IntVar(&opts.TensorParallel, "tp", 0, 
-		"tensor parallelism degree (must be 1, 2, 4, or 8)")
+		"tensor parallelism degree (must be 1, 2, 4, or 8; 16 only for ascend-910c explicit devices)")
 	cmd.Flags().IntVar(&opts.MaxConcurrent, "max-concurrent", 0, 
 		"maximum concurrent requests (0 for unlimited)")
 	cmd.Flags().BoolVarP(&opts.Detach, "detach", "d", false,

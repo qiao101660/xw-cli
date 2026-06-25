@@ -144,6 +144,7 @@ func (m *Manager) Create(ctx context.Context, runtimeName string, params *Create
 	//
 	// Constraints:
 	// - world_size and device_count must be 0 or 1/2/4/8
+	// - Ascend 910C additionally supports 16 explicit devices
 	// - If both --tp and --device: tp must equal device_count
 	
 	var tensorParallel int
@@ -157,12 +158,15 @@ func (m *Manager) Create(ctx context.Context, runtimeName string, params *Create
 	// Extract world_size from template parameters if present
 	templateWorldSize := extractWorldSizeFromTemplate(params.TemplateParams)
 	
-	// Validate allowed values (0 or 1/2/4/8)
+	// Validate allowed values (0 or 1/2/4/8; 16 only for explicit Ascend 910C devices)
 	validateParallelism := func(value int, name string) error {
-		if value != 0 && value != 1 && value != 2 && value != 4 && value != 8 {
-			return fmt.Errorf("%s must be 0, 1, 2, 4, or 8 (got %d)", name, value)
+		if value == 0 || value == 1 || value == 2 || value == 4 || value == 8 {
+			return nil
 		}
-		return nil
+		if value == 16 && supportsSixteenDeviceParallelism(params.Devices) {
+			return nil
+		}
+		return fmt.Errorf("%s must be 0, 1, 2, 4, or 8; 16 is supported only for explicit ascend-910c devices (got %d)", name, value)
 	}
 	
 	if hasTP && configTP > 0 {
@@ -945,6 +949,18 @@ func parseDeviceList(deviceList string) ([]int, error) {
 	}
 	
 	return indices, nil
+}
+
+func supportsSixteenDeviceParallelism(devices []DeviceInfo) bool {
+	if len(devices) == 0 {
+		return false
+	}
+	for _, dev := range devices {
+		if dev.ConfigKey != "ascend-910c" && dev.VariantKey != "ascend-910c" {
+			return false
+		}
+	}
+	return true
 }
 
 // extractWorldSizeFromTemplate extracts the world_size parameter from template parameters.

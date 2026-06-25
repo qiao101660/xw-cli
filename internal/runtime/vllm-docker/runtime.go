@@ -192,6 +192,9 @@ func (r *Runtime) Create(ctx context.Context, params *runtime.CreateParams) (*ru
 	// These control tensor parallelism across multiple devices
 	if params.TensorParallel > 0 {
 		env["TENSOR_PARALLEL"] = fmt.Sprintf("%d", params.TensorParallel)
+		if isAscend910CDevices(params.Devices) {
+			env["TENSOR_PARALLEL_SIZE"] = fmt.Sprintf("%d", params.TensorParallel)
+		}
 		logger.Debug("Set TENSOR_PARALLEL=%d", params.TensorParallel)
 	}
 	if params.WorldSize > 0 {
@@ -397,4 +400,16 @@ func (r *Runtime) Create(ctx context.Context, params *runtime.CreateParams) (*ru
 		params.InstanceID, resp.ID[:12])
 	
 	return instance, nil
+}
+
+func isAscend910CDevices(devices []runtime.DeviceInfo) bool {
+	if len(devices) == 0 {
+		return false
+	}
+	for _, dev := range devices {
+		if dev.ConfigKey != "ascend-910c" && dev.VariantKey != "ascend-910c" {
+			return false
+		}
+	}
+	return true
 }
