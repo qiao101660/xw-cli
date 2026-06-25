@@ -814,3 +814,14 @@ models:
         - vllm:docker
     capabilities:
       - completion
+
+  - model_id: glm-5.2-w8a8
+    source_id: Eco-Tech/GLM-5.2-w8a8
+    parameters: 0.0
+    context_length: 20480
+    supported_devices:
+      ascend-910c:
+        - vllm:docker
+    tag: w8a8
+    capabilities:
+      - completion
